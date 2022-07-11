@@ -2,7 +2,7 @@ import aiohttp
 
 from service.core.base import Base as BaseService
 from service.core.request_policy import RequestPolicy
-from service.core.request_parameters import RequestMethod
+from service.core.request_data import RequestData, RequestMethod
 
 
 class ExampleServicePolicy(RequestPolicy):
@@ -24,13 +24,13 @@ class ExampleService(BaseService):
         return 'Hello, from ExampleService'
 
     async def get_alive_data(self):
-        url: str = 'http://localhost:10500/live/'
-        method: RequestMethod = RequestMethod.GET
-
-        await self.send(
-            url=url,
-            method=method,
+        request_data = RequestData(
+            'http://localhost:10500/live/',
+            RequestMethod.GET.value,
         )
-        status, data = self.get_response_data()
 
-        return status, data
+        await self.send(request_data)
+
+        response = self.get_response()
+
+        return response.status, response.get_data()
