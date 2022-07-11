@@ -54,3 +54,32 @@ def test_base_log_dict_formatter_with_response(request_data: RequestData, respon
     assert log_formatter.get_dict_record() == log_dict
 
 
+def test_base_log_string_formatter_without_response(request_data: RequestData):
+    message = 'message'
+
+    log_str = f'message={message}, request_url={request_data.url}, request_method={request_data.method}, ' \
+              f'request_params={request_data.params}, request_headers={request_data.headers}, ' \
+              f'request_data={request_data.data}, response_status=500, response_data={{}}'
+
+    log_formatter = HTTPServiceFormatter(message=message, request=request_data)
+    assert log_formatter.get_str_record() == log_str
+
+
+def test_base_log_dict_formatter_without_response(request_data: RequestData):
+    message = 'message'
+
+    log_dict = {
+        'message': message,
+
+        'request_url': request_data.url,
+        'request_method': request_data.method,
+        'request_params': request_data.params,
+        'request_headers': request_data.headers,
+        'request_data': request_data.data,
+
+        'response_status': 500,
+        'response_data': {},
+    }
+
+    log_formatter = HTTPServiceFormatter(message=message, request=request_data)
+    assert log_formatter.get_dict_record() == log_dict
