@@ -15,7 +15,7 @@ class LogFormatter:
         }
 
     def get_str_record(self) -> str:
-        return ','.join(
+        return ', '.join(
             [
                 f'{name}={value}'
                 for name, value in self.get_dict_record().items()

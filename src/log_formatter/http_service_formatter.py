@@ -18,6 +18,7 @@ class HTTPServiceFormatter(LogFormatter):
         self.response: ResponseData = response or ResponseData()
 
         self.request_url: str = self.request.url
+        self.request_method: str = self.request.method
         self.request_params: dict | None = self.request.params
         self.request_headers: dict | None = self.request.headers
         self.request_data: Any = self.request.data
@@ -27,6 +28,7 @@ class HTTPServiceFormatter(LogFormatter):
 
         self.repr_fields = self.repr_fields + [
             'request_url',
+            'request_method',
             'request_params',
             'request_headers',
             'request_data',
