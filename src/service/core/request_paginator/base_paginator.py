@@ -1,3 +1,5 @@
+from typing import Generator
+
 from abc import ABCMeta, abstractmethod
 from service.core.request_data import RequestData
 
@@ -7,5 +9,5 @@ class Paginator(metaclass=ABCMeta):
         self.request_data = request_data
 
     @abstractmethod
-    def get_paginated_request(self):
+    def get_paginated_request(self) -> Generator[RequestData, None, None]:
         pass

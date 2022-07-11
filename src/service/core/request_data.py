@@ -22,12 +22,12 @@ class RequestData:
             data: Any = None,
             auth: tuple[str, str] | None = None,
     ):
-        self.url = url
-        self.method = method
-        self.params = params
-        self.headers = headers
-        self.json, self.data = self.parse_data(data)
-        self.auth = auth
+        self.url: str = url
+        self.method: str = method
+        self.params: dict | None = params
+        self.headers: dict | None = headers
+        self.json, self.data = self.parse_data(data)  # type: tuple[dict |None, Any]
+        self.auth: tuple[str, str] | None = auth
 
     @staticmethod
     def parse_data(data: dict | Any) -> tuple[dict | None, Any]:
