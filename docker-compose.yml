@@ -13,12 +13,3 @@ services:
     ports:
       - 10500:10500
     command: sh -c  "gunicorn main:app --bind 0.0.0.0:10500 --workers 1 --worker-class uvicorn.workers.UvicornWorker"
-
-#  rabbit-management:
-#    image: rabbitmq:3-management-alpine
-#    container_name: mock-rabbit-management
-#    ports:
-#      - 4369:4369
-#      - 5671:5671
-#      - 5672:5672
-#      - 15672:15672

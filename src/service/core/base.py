@@ -21,7 +21,7 @@ class BaseServiceLogger:
                     f'retry count {retry_count}...',
             request=request_data,
         )
-        logger.info(log_data.get_str_record())
+        logger.info(log_data.get_json_record())
 
     @staticmethod
     def _log_base_send_request_exception(error, request_data):
@@ -29,7 +29,7 @@ class BaseServiceLogger:
             message=f'Error {type(error)} while sending request',
             request=request_data,
         )
-        logger.info(log_data.get_str_record())
+        logger.info(log_data.get_json_record())
 
     @staticmethod
     def _log_request(request_data):
@@ -37,7 +37,7 @@ class BaseServiceLogger:
             message='Sending request',
             request=request_data,
         )
-        logger.info(log_data.get_str_record())
+        logger.info(log_data.get_json_record())
 
     @staticmethod
     def _log_response(request_data, response_data):
@@ -46,7 +46,7 @@ class BaseServiceLogger:
             request=request_data,
             response=response_data,
         )
-        logger.info(log_data.get_str_record())
+        logger.info(log_data.get_json_record())
 
 
 class Base(BaseServiceLogger):
@@ -79,7 +79,7 @@ class Base(BaseServiceLogger):
             return json.loads(data)
         except json.JSONDecodeError as error:
             log_data = LogFormatter(f'Error while decode data from response | {error}')
-            logger.error(log_data.get_str_record())
+            logger.error(log_data.get_json_record())
             return data
 
     async def send(

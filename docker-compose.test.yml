@@ -11,12 +11,3 @@ services:
     volumes:
       - ./src:/app/src
     command: sh -c  "coverage run -m pytest && coverage report"
-
-#  rabbit-management:
-#    image: rabbitmq:3-management-alpine
-#    container_name: mock-rabbit-management
-#    ports:
-#      - 4369:4369
-#      - 5671:5671
-#      - 5672:5672
-#      - 15672:15672

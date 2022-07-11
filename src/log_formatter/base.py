@@ -1,5 +1,7 @@
+import ujson
 
 
+# TODO: add logging module usage?
 class LogFormatter:
     def __init__(self, message: str):
         self.message = message
@@ -21,3 +23,6 @@ class LogFormatter:
                 for name, value in self.get_dict_record().items()
             ]
         )
+
+    def get_json_record(self) -> str:
+        return ujson.dumps(self.get_dict_record())
