@@ -6,50 +6,11 @@ from service.core.exceptions import ServiceUnavailable
 from service.core.request_policy import RequestPolicy
 from service.core.request_data import RequestData
 from service.core.response_data import ResponseData
-from log_formatter.http_service_formatter import HTTPServiceFormatter, LogFormatter
-from settings import get_logger
+
+from service.core.base_service_logger_mixin import BaseServiceLoggerMixin
 
 
-logger = get_logger('http_service')
-
-
-class BaseServiceLogger:
-    @staticmethod
-    def _log_retry_exception(error, request_data, retry_count):
-        log_data = HTTPServiceFormatter(
-            message=f'Warning, error {type(error)} while sending request, '
-                    f'retry count {retry_count}...',
-            request=request_data,
-        )
-        logger.info(log_data.get_json_record())
-
-    @staticmethod
-    def _log_base_send_request_exception(error, request_data):
-        log_data = HTTPServiceFormatter(
-            message=f'Error {type(error)} while sending request',
-            request=request_data,
-        )
-        logger.info(log_data.get_json_record())
-
-    @staticmethod
-    def _log_request(request_data):
-        log_data = HTTPServiceFormatter(
-            message='Sending request',
-            request=request_data,
-        )
-        logger.info(log_data.get_json_record())
-
-    @staticmethod
-    def _log_response(request_data, response_data):
-        log_data = HTTPServiceFormatter(
-            message='Response received',
-            request=request_data,
-            response=response_data,
-        )
-        logger.info(log_data.get_json_record())
-
-
-class Base(BaseServiceLogger):
+class Base(BaseServiceLoggerMixin):
     def __init__(
             self,
             auth: tuple[str, str] | None = None,
@@ -63,6 +24,9 @@ class Base(BaseServiceLogger):
     def _add_history(self, request: RequestData, response: ResponseData):
         self._request_history.append((request, response))
 
+    def _clear_history(self):
+        self._request_history.clear()
+
     def get_response(self) -> ResponseData:
         if self._request_history:
             last_history: tuple[RequestData, ResponseData] | None = self._request_history[-1]
@@ -72,14 +36,12 @@ class Base(BaseServiceLogger):
 
         return last_request
 
-    @staticmethod
-    async def loads_data(response: aiohttp.ClientResponse) -> dict | str:
+    async def loads_data(self, response: aiohttp.ClientResponse) -> dict | str:
         data = await response.text()
         try:
             return json.loads(data)
         except json.JSONDecodeError as error:
-            log_data = LogFormatter(f'Error while decode data from response | {error}')
-            logger.error(log_data.get_json_record())
+            self._log_representation_exception(error)
             return data
 
     async def send(
@@ -87,8 +49,9 @@ class Base(BaseServiceLogger):
             request_data: RequestData,
             request_policy: RequestPolicy = None,
             session: aiohttp.ClientSession = None,
+            is_need_close_session: bool = True,
     ) -> None:
-        is_need_close_session: bool = session is not None
+        is_need_close_session: bool = session is not None and is_need_close_session
         session: aiohttp.ClientSession = session or aiohttp.ClientSession()
         request_policy: RequestPolicy = request_policy or self.policy
 
@@ -127,3 +90,15 @@ class Base(BaseServiceLogger):
 
         if status is None:
             raise ServiceUnavailable
+
+    async def paginate(
+            self,
+            request_data: RequestData,
+            request_policy: RequestPolicy = None,
+            session: aiohttp.ClientSession = None,
+    ) -> None:
+        session: aiohttp.ClientSession = session or aiohttp.ClientSession()
+
+        await self.send(request_data, request_policy, session, is_need_close_session=False)
+
+        await session.close()
