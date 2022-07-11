@@ -8,25 +8,25 @@ from service.core.request_policy import RequestPolicy
 
 class TestBaseService:
     @pytest.fixture(scope='class')
-    def base_service(self):
+    def base_service(self) -> Base:
         rp = RequestPolicy(timeout=5, retry_count=0)
         return Base(policy=rp)
 
     @pytest.fixture(scope='class')
-    def request_data(self):
+    def request_data(self) -> RequestData:
         return RequestData(
             'https://google.com/',
             RequestMethod.GET.value,
         )
 
     @pytest.mark.asyncio
-    async def test_base_service(self, base_service, request_data):
+    async def test_base_service(self, base_service: Base, request_data: RequestData):
         await base_service.send(request_data)
         response = base_service.get_response()
         assert response.status == 200
 
     @pytest.mark.asyncio
-    async def test_base_service_response(self, base_service, request_data):
+    async def test_base_service_response(self, base_service: Base, request_data: RequestData):
         mock_data = 'Data'
 
         base_service.loads_data = AsyncMock()
