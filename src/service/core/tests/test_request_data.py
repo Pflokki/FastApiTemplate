@@ -1,7 +1,7 @@
 from service.core.request_data import RequestData
 
 
-def test_request_data_parse_ant_data():
+def test_request_data_parse_any_data():
     rd = RequestData(url='url', method='get', data='string')
     assert rd.json is None and rd.data == 'string'
 
