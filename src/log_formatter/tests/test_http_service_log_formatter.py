@@ -2,7 +2,7 @@ import pytest
 import ujson
 
 from service.core.request_data import RequestData
-from service.core.response_data import ResponseData
+from service.core.response_data import ResponseData, StatusCodes
 from log_formatter.http_service_formatter import HTTPServiceFormatter
 
 
@@ -80,7 +80,7 @@ def test_base_log_string_formatter_without_response(request_data: RequestData):
 
     log_str = f'message={message}, request_url={request_data.url}, request_method={request_data.method}, ' \
               f'request_params={request_data.params}, request_headers={request_data.headers}, ' \
-              f'request_data={request_data.data}, response_status=500, response_data={{}}'
+              f'request_data={request_data.data}, response_status={StatusCodes.UNDEFINED_STATUS.value}, response_data={{}}'
 
     log_formatter = HTTPServiceFormatter(message=message, request=request_data)
     assert log_formatter.get_str_record() == log_str
@@ -98,7 +98,7 @@ def test_base_log_dict_formatter_without_response(request_data: RequestData):
         'request_headers': request_data.headers,
         'request_data': request_data.data,
 
-        'response_status': 500,
+        'response_status': StatusCodes.UNDEFINED_STATUS.value,
         'response_data': {},
     }
 
@@ -118,7 +118,7 @@ def test_base_log_json_formatter_without_response(request_data: RequestData):
         'request_headers': request_data.headers,
         'request_data': request_data.data,
 
-        'response_status': 500,
+        'response_status': StatusCodes.UNDEFINED_STATUS.value,
         'response_data': {},
     })
 

@@ -1,4 +1,5 @@
 from typing import Generator
+from copy import deepcopy
 
 from service.core.request_paginator.base_paginator import Paginator
 from service.core.request_data import RequestData
@@ -24,6 +25,8 @@ class LimitOffsetParamsPaginator(Paginator):
         self._offset_field_name: str = offset_field_name
 
     def get_paginated_request(self) -> Generator[RequestData, None, None]:
+        if not self.request_data.params:
+            self.request_data.params = {}
         self.request_data.params[self._limit_field_name] = self.limit
 
         for offset in range(
@@ -33,4 +36,4 @@ class LimitOffsetParamsPaginator(Paginator):
         ):
             self.request_data.params[self._offset_field_name] = offset
 
-            yield self.request_data
+            yield deepcopy(self.request_data)

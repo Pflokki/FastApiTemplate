@@ -3,6 +3,7 @@ import aiohttp
 from aiohttp.client_exceptions import ClientResponseError
 
 from service.core.exceptions import ServiceUnavailable
+from service.core.request_paginator.base_paginator import Paginator
 from service.core.request_policy import RequestPolicy
 from service.core.request_data import RequestData
 from service.core.response_data import ResponseData
@@ -44,6 +45,17 @@ class Base(BaseServiceLoggerMixin):
             self._log_representation_exception(error)
             return data
 
+    async def _send_request(
+            self,
+            session: aiohttp.ClientSession,
+            request_data: RequestData,
+            request_policy: RequestPolicy
+    ) -> ResponseData:
+        async with getattr(session, request_data.method)(
+                **request_data.to_dict(), timeout=request_policy.timeout
+        ) as response:
+            return ResponseData(response.status, await self.loads_data(response))
+
     async def send(
             self,
             request_data: RequestData,
@@ -55,26 +67,22 @@ class Base(BaseServiceLoggerMixin):
         session: aiohttp.ClientSession = session or aiohttp.ClientSession()
         request_policy: RequestPolicy = request_policy or self.policy
 
-        status = None
+        response_data = None
         retry_count = 0
         while request_policy.is_need_retry(retry_count):
             try:
 
                 self._log_request(request_data)
 
-                async with getattr(session, request_data.method)(
-                        **request_data.to_dict(), timeout=request_policy.timeout
-                ) as response:
-                    status = response.status
-                    response_data = ResponseData(response.status, await self.loads_data(response))
-                    self._add_history(request_data, response_data)
+                response_data = await self._send_request(session, request_data, request_policy)
+                self._add_history(request_data, response_data)
 
-                    self._log_response(request_data, response_data)
+                self._log_response(request_data, response_data)
 
-                    if response_data.status in self.policy.retry_status_codes:
-                        raise ClientResponseError
+                if response_data.status in self.policy.retry_status_codes:
+                    raise ClientResponseError
 
-                    break
+                break
 
             except self.policy.retry_reason as error:
                 retry_count += 1
@@ -82,23 +90,27 @@ class Base(BaseServiceLoggerMixin):
             except Exception as error:
                 self._log_base_send_request_exception(error, request_data)
                 break
-            else:
-                retry_count += 1
 
         if is_need_close_session:
             await session.close()
 
-        if status is None:
+        if not response_data:
             raise ServiceUnavailable
 
     async def paginate(
             self,
-            request_data: RequestData,
+            paginator: Paginator,
             request_policy: RequestPolicy = None,
             session: aiohttp.ClientSession = None,
     ) -> None:
+        self._clear_history()
+
         session: aiohttp.ClientSession = session or aiohttp.ClientSession()
 
-        await self.send(request_data, request_policy, session, is_need_close_session=False)
+        for request_data in paginator.get_paginated_request():
+            try:
+                await self.send(request_data, request_policy, session, is_need_close_session=False)
+            except ServiceUnavailable:
+                pass
 
         await session.close()

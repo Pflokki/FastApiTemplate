@@ -8,12 +8,13 @@ class StatusCodes(Enum):
     HTTP_403 = 403
     HTTP_404 = 404
     HTTP_500 = 500
+    UNDEFINED_STATUS = -1
 
 
 class ResponseData:
     def __init__(
             self,
-            status: int = StatusCodes.HTTP_500.value,
+            status: int = StatusCodes.UNDEFINED_STATUS.value,
             data: dict | str | None = None,
     ):
         self.status = status
@@ -31,3 +32,6 @@ class ResponseData:
 
     def get_error(self) -> dict | str:
         return {} if self.is_success_response() else (self._error or {})
+
+    def is_undefined_status(self):
+        return self.status == StatusCodes.UNDEFINED_STATUS.value
