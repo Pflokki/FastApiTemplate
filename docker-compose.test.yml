@@ -1,13 +1,25 @@
 version: "3.9"
 
 services:
-  web:
+  web-test:
     container_name: fast-api-template-test
     build:
       context: .
       dockerfile: ./build/web.dockerfile
     env_file:
       - ./build/.env
+    environment:
+      - PG_RW_DSN=postgresql+asyncpg://user_pg:password_pg@postgres-test:5432/fast_api_template_test
     volumes:
       - ./src:/app/src
     command: sh -c  "coverage run -m pytest && coverage report"
+    depends_on:
+      - postgres-test
+
+  postgres-test:
+    container_name: fast-api-template-postgres-test
+    image: postgres:11
+    environment:
+      - POSTGRES_USER=user_pg
+      - POSTGRES_PASSWORD=password_pg
+      - POSTGRES_DB=fast_api_template_test
