@@ -1,7 +1,7 @@
 from sqlalchemy import MetaData
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.pool import QueuePool
-from sqlalchemy.ext.asyncio.engine import create_async_engine
+from sqlalchemy.ext.asyncio.engine import create_async_engine, AsyncEngine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -26,7 +26,7 @@ class BaseDatabase:
             'echo': is_debug,
         }
 
-        self._engine_master = create_async_engine(
+        self._engine_master: AsyncEngine = create_async_engine(
             make_url(database_dsn),
             **self._engine_params,
         )
@@ -40,6 +40,9 @@ class BaseDatabase:
 
     def get_session(self) -> AsyncSession:
         return self._async_session_factory()
+
+    def get_engine(self) -> AsyncEngine:
+        return self._engine_master
 
     async def shutdown(self):
         await self._engine_master.dispose()
